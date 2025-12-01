@@ -21,11 +21,23 @@ function App() {
   }
 
   const handleCropComplete = (croppedImage) => {
-    setPages(prev => prev.map(p => 
+    setPages(prev => prev.map(p =>
       p.id === selectedPage.id ? { ...p, cropped: croppedImage } : p
     ))
     setSelectedPage(null)
   }
+
+  const handleCropAndNext = (croppedImage) => {
+    setPages(prev => prev.map(p =>
+      p.id === selectedPage.id ? { ...p, cropped: croppedImage } : p
+    ))
+    // Find the next page
+    const currentIndex = pages.findIndex(p => p.id === selectedPage.id)
+    const nextPage = pages[currentIndex + 1]
+    setSelectedPage(nextPage || null)
+  }
+
+  const hasNextPage = selectedPage && pages.findIndex(p => p.id === selectedPage.id) < pages.length - 1
 
   const handleExportPdf = async () => {
     const images = pages.map(p => p.cropped || p.original)
@@ -56,6 +68,7 @@ function App() {
         <ImageCropper
           image={selectedPage.cropped || selectedPage.original}
           onCropComplete={handleCropComplete}
+          onCropAndNext={hasNextPage ? handleCropAndNext : null}
           onCancel={() => setSelectedPage(null)}
         />
       ) : (
