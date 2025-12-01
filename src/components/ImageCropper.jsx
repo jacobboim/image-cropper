@@ -27,31 +27,41 @@ export default function ImageCropper({ image, onCropComplete, onCropAndNext, onC
     setCrop({ x: 0, y: 5, width: 100, height: 90 });
   };
 
-  const getMousePosition = useCallback((e) => {
+  const getEventPosition = useCallback((e) => {
     if (!imageRef.current) return { x: 0, y: 0 };
     const rect = imageRef.current.getBoundingClientRect();
+
+    // Handle both mouse and touch events
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
     return {
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
+      x: ((clientX - rect.left) / rect.width) * 100,
+      y: ((clientY - rect.top) / rect.height) * 100,
     };
   }, []);
 
-  const handleMouseDown = useCallback(
+  const handlePointerDown = useCallback(
     (e, handle) => {
       e.preventDefault();
       e.stopPropagation();
-      const pos = getMousePosition(e);
+      const pos = getEventPosition(e);
       setDragging(handle);
       setDragStart({ x: pos.x, y: pos.y, crop: { ...crop } });
     },
-    [crop, getMousePosition]
+    [crop, getEventPosition]
   );
 
-  const handleMouseMove = useCallback(
+  const handlePointerMove = useCallback(
     (e) => {
       if (!dragging || !dragStart.crop) return;
 
-      const pos = getMousePosition(e);
+      // Prevent scrolling on touch devices
+      if (e.touches) {
+        e.preventDefault();
+      }
+
+      const pos = getEventPosition(e);
       const dx = pos.x - dragStart.x;
       const dy = pos.y - dragStart.y;
       const startCrop = dragStart.crop;
@@ -144,24 +154,32 @@ export default function ImageCropper({ image, onCropComplete, onCropAndNext, onC
 
       setCrop(newCrop);
     },
-    [dragging, dragStart, crop, getMousePosition]
+    [dragging, dragStart, crop, getEventPosition]
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     setDragging(null);
     setDragStart({ x: 0, y: 0, crop: null });
   }, []);
 
   useEffect(() => {
     if (dragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      // Mouse events
+      document.addEventListener("mousemove", handlePointerMove);
+      document.addEventListener("mouseup", handlePointerUp);
+      // Touch events
+      document.addEventListener("touchmove", handlePointerMove, { passive: false });
+      document.addEventListener("touchend", handlePointerUp);
+      document.addEventListener("touchcancel", handlePointerUp);
       return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("mousemove", handlePointerMove);
+        document.removeEventListener("mouseup", handlePointerUp);
+        document.removeEventListener("touchmove", handlePointerMove);
+        document.removeEventListener("touchend", handlePointerUp);
+        document.removeEventListener("touchcancel", handlePointerUp);
       };
     }
-  }, [dragging, handleMouseMove, handleMouseUp]);
+  }, [dragging, handlePointerMove, handlePointerUp]);
 
   const getCroppedImage = async () => {
     if (!imageRef.current) return null;
@@ -254,8 +272,10 @@ export default function ImageCropper({ image, onCropComplete, onCropAndNext, onC
                 top: `${crop.y}%`,
                 width: `${crop.width}%`,
                 height: `${crop.height}%`,
+                touchAction: "none",
               }}
-              onMouseDown={(e) => handleMouseDown(e, "move")}
+              onMouseDown={(e) => handlePointerDown(e, "move")}
+              onTouchStart={(e) => handlePointerDown(e, "move")}
             >
               {/* Grid overlay */}
               <div className="crop-grid"></div>
@@ -263,53 +283,65 @@ export default function ImageCropper({ image, onCropComplete, onCropAndNext, onC
               {/* Corner handles */}
               <div
                 className="crop-handle nw"
-                onMouseDown={(e) => handleMouseDown(e, "nw")}
+                onMouseDown={(e) => handlePointerDown(e, "nw")}
+                onTouchStart={(e) => handlePointerDown(e, "nw")}
               />
               <div
                 className="crop-handle n"
-                onMouseDown={(e) => handleMouseDown(e, "n")}
+                onMouseDown={(e) => handlePointerDown(e, "n")}
+                onTouchStart={(e) => handlePointerDown(e, "n")}
               />
               <div
                 className="crop-handle ne"
-                onMouseDown={(e) => handleMouseDown(e, "ne")}
+                onMouseDown={(e) => handlePointerDown(e, "ne")}
+                onTouchStart={(e) => handlePointerDown(e, "ne")}
               />
               <div
                 className="crop-handle e"
-                onMouseDown={(e) => handleMouseDown(e, "e")}
+                onMouseDown={(e) => handlePointerDown(e, "e")}
+                onTouchStart={(e) => handlePointerDown(e, "e")}
               />
               <div
                 className="crop-handle se"
-                onMouseDown={(e) => handleMouseDown(e, "se")}
+                onMouseDown={(e) => handlePointerDown(e, "se")}
+                onTouchStart={(e) => handlePointerDown(e, "se")}
               />
               <div
                 className="crop-handle s"
-                onMouseDown={(e) => handleMouseDown(e, "s")}
+                onMouseDown={(e) => handlePointerDown(e, "s")}
+                onTouchStart={(e) => handlePointerDown(e, "s")}
               />
               <div
                 className="crop-handle sw"
-                onMouseDown={(e) => handleMouseDown(e, "sw")}
+                onMouseDown={(e) => handlePointerDown(e, "sw")}
+                onTouchStart={(e) => handlePointerDown(e, "sw")}
               />
               <div
                 className="crop-handle w"
-                onMouseDown={(e) => handleMouseDown(e, "w")}
+                onMouseDown={(e) => handlePointerDown(e, "w")}
+                onTouchStart={(e) => handlePointerDown(e, "w")}
               />
 
               {/* Edge handles for easier resizing */}
               <div
                 className="crop-edge top"
-                onMouseDown={(e) => handleMouseDown(e, "n")}
+                onMouseDown={(e) => handlePointerDown(e, "n")}
+                onTouchStart={(e) => handlePointerDown(e, "n")}
               />
               <div
                 className="crop-edge bottom"
-                onMouseDown={(e) => handleMouseDown(e, "s")}
+                onMouseDown={(e) => handlePointerDown(e, "s")}
+                onTouchStart={(e) => handlePointerDown(e, "s")}
               />
               <div
                 className="crop-edge left"
-                onMouseDown={(e) => handleMouseDown(e, "w")}
+                onMouseDown={(e) => handlePointerDown(e, "w")}
+                onTouchStart={(e) => handlePointerDown(e, "w")}
               />
               <div
                 className="crop-edge right"
-                onMouseDown={(e) => handleMouseDown(e, "e")}
+                onMouseDown={(e) => handlePointerDown(e, "e")}
+                onTouchStart={(e) => handlePointerDown(e, "e")}
               />
             </div>
           )}

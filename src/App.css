@@ -223,6 +223,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .cropper-header h2 {
@@ -231,7 +232,30 @@ body {
 
 .cropper-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
+}
+
+/* Mobile cropper header */
+@media (max-width: 600px) {
+  .cropper-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .cropper-header h2 {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .cropper-actions {
+    justify-content: center;
+  }
+
+  .cropper-actions .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
 }
 
 .cropper-wrapper {
@@ -268,6 +292,7 @@ body {
   background: rgba(0, 212, 255, 0.1);
   cursor: move;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  touch-action: none;
 }
 
 .crop-handle {
@@ -279,6 +304,7 @@ body {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.15s ease;
+  touch-action: none;
 }
 
 .crop-handle:hover {
@@ -298,12 +324,43 @@ body {
 .crop-edge {
   position: absolute;
   background: transparent;
+  touch-action: none;
 }
 
 .crop-edge.top { top: -4px; left: 12px; right: 12px; height: 8px; cursor: ns-resize; }
 .crop-edge.bottom { bottom: -4px; left: 12px; right: 12px; height: 8px; cursor: ns-resize; }
 .crop-edge.left { left: -4px; top: 12px; bottom: 12px; width: 8px; cursor: ew-resize; }
 .crop-edge.right { right: -4px; top: 12px; bottom: 12px; width: 8px; cursor: ew-resize; }
+
+/* Larger touch targets on mobile */
+@media (pointer: coarse) {
+  .crop-handle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .crop-edge.top,
+  .crop-edge.bottom {
+    height: 20px;
+    top: -10px;
+  }
+
+  .crop-edge.bottom {
+    top: auto;
+    bottom: -10px;
+  }
+
+  .crop-edge.left,
+  .crop-edge.right {
+    width: 20px;
+    left: -10px;
+  }
+
+  .crop-edge.right {
+    left: auto;
+    right: -10px;
+  }
+}
 
 /* Crop grid lines */
 .crop-grid {
